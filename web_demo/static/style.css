@@ -1,0 +1,248 @@
+/* ── Reset & base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #f4f6f9;
+  --card:        #ffffff;
+  --primary:     #2563eb;
+  --primary-dk:  #1d4ed8;
+  --healthy:     #16a34a;
+  --healthy-lt:  #dcfce7;
+  --danger:      #dc2626;
+  --danger-lt:   #fee2e2;
+  --text:        #1e293b;
+  --muted:       #64748b;
+  --border:      #e2e8f0;
+  --radius:      12px;
+  --shadow:      0 2px 12px rgba(0,0,0,.08);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: #fff;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.header-inner { max-width: 680px; margin: 0 auto; }
+header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -.5px; }
+header .subtitle {
+  margin-top: .5rem;
+  font-size: .95rem;
+  opacity: .85;
+}
+
+/* ── Main layout ─────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  max-width: 680px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.75rem;
+}
+.card h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: .35rem;
+}
+.hint { font-size: .88rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+/* ── Dropzone ────────────────────────────────────────────────────── */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 2.5rem 1rem;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  text-align: center;
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--primary);
+  background: #eff6ff;
+}
+.dropzone.has-image { padding: 1rem; }
+.dropzone-icon { font-size: 2.8rem; line-height: 1; }
+.dropzone-text { font-size: .95rem; color: var(--muted); line-height: 1.6; }
+.dropzone-text strong { color: var(--text); }
+.link { color: var(--primary); text-decoration: underline; cursor: pointer; }
+
+/* ── Preview ─────────────────────────────────────────────────────── */
+.preview-wrap {
+  position: relative;
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+.preview-img {
+  max-height: 220px;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  object-fit: contain;
+}
+.btn-clear {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  font-size: .8rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-clear:hover { background: rgba(0,0,0,.75); }
+
+/* ── Primary button ──────────────────────────────────────────────── */
+.btn-primary {
+  display: block;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: .8rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, opacity .2s;
+}
+.btn-primary:hover:not(:disabled) { background: var(--primary-dk); }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Results ─────────────────────────────────────────────────────── */
+.diagnosis-badge {
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding: .75rem 1.25rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.badge-healthy {
+  background: var(--healthy-lt);
+  color: var(--healthy);
+}
+.badge-anemic {
+  background: var(--danger-lt);
+  color: var(--danger);
+}
+
+/* Probability bars */
+.prob-section { margin-bottom: 1.25rem; }
+.prob-label {
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: .75rem;
+}
+.prob-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 52px;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .5rem;
+}
+.prob-name { font-size: .9rem; font-weight: 500; }
+.non-anemic-label { color: var(--healthy); }
+.anemic-label     { color: var(--danger);  }
+.bar-track {
+  height: 12px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.non-anemic-bar { background: var(--healthy); }
+.anemic-bar     { background: var(--danger);  }
+.prob-pct { font-size: .88rem; font-weight: 600; text-align: right; }
+
+/* Recommendation */
+.recommendation {
+  background: #f8fafc;
+  border-left: 4px solid var(--primary);
+  padding: .8rem 1rem;
+  border-radius: 0 8px 8px 0;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.disclaimer {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── Error banner ────────────────────────────────────────────────── */
+.error-banner {
+  background: var(--danger-lt);
+  color: var(--danger);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: .9rem 1.1rem;
+  font-size: .9rem;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────── */
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 1rem;
+}
+.spinner p { font-size: .9rem; color: var(--muted); }
+.spinner-ring {
+  width: 44px; height: 44px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  padding: 1.25rem;
+  font-size: .78rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Utility ─────────────────────────────────────────────────────── */
+.hidden { display: none !important; }

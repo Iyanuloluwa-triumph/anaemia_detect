@@ -1,0 +1,30 @@
+# Image dataset — too large for GitHub, not needed by the web demo
+Anemic/
+Non-anemic/
+CP-AnemiC dataset.rar
+
+# Source data files
+*.xlsx
+*.csv
+
+# Training artefacts not needed at deployment
+configs/
+src/
+models/test_split.csv
+models/training_log.csv
+models/evaluation_plots.png
+models/per_class_recall.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

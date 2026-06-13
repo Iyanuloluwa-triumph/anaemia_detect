@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($result = Invoke-WebRequest -Uri \"http://127.0.0.1:5000/predict\" -Method POST -Form @{ image = Get-Item \"c:\\\\Users\\\\DR AKIN O\\\\Documents\\\\Tensorflow lite HCP classifier\\\\Anemic\\\\Image_001.png\" } -TimeoutSec 60; $result.Content)"
+    ]
+  }
+}

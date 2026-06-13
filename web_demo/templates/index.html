@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anaemia Classifier — Conjunctival Image Analysis</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────────── -->
+  <header>
+    <div class="header-inner">
+      <h1>Anaemia Classifier</h1>
+      <p class="subtitle">Non-invasive anaemia screening from lower eyelid conjunctiva images</p>
+    </div>
+  </header>
+
+  <!-- ── Main ──────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- Upload card -->
+    <section class="card upload-card">
+      <h2>Upload Conjunctival Image</h2>
+      <p class="hint">Photograph of the lower eyelid inner surface (conjunctiva)</p>
+
+      <label id="dropzone" class="dropzone" for="fileInput">
+        <div class="dropzone-icon">&#128247;</div>
+        <div class="dropzone-text">
+          <strong>Drag &amp; drop</strong> an image here<br />
+          or <span class="link">click to browse</span>
+        </div>
+        <input id="fileInput" type="file" accept=".png,.jpg,.jpeg,.bmp,.webp" hidden />
+      </label>
+
+      <!-- Preview -->
+      <div id="previewWrap" class="preview-wrap hidden">
+        <img id="previewImg" class="preview-img" alt="Preview" />
+        <button id="clearBtn" class="btn-clear" title="Remove image">&#10005;</button>
+      </div>
+
+      <button id="analyseBtn" class="btn-primary" disabled>Analyse Image</button>
+    </section>
+
+    <!-- Results card (hidden until a result arrives) -->
+    <section id="resultsCard" class="card results-card hidden">
+      <h2>Analysis Result</h2>
+
+      <div id="diagnosisBadge" class="diagnosis-badge"></div>
+
+      <div class="prob-section">
+        <p class="prob-label">Class probabilities</p>
+
+        <div class="prob-row">
+          <span class="prob-name non-anemic-label">Non-Anemic</span>
+          <div class="bar-track">
+            <div id="barNonAnemic" class="bar non-anemic-bar" style="width:0%"></div>
+          </div>
+          <span id="pctNonAnemic" class="prob-pct">—</span>
+        </div>
+
+        <div class="prob-row">
+          <span class="prob-name anemic-label">Anemic</span>
+          <div class="bar-track">
+            <div id="barAnemic" class="bar anemic-bar" style="width:0%"></div>
+          </div>
+          <span id="pctAnemic" class="prob-pct">—</span>
+        </div>
+      </div>
+
+      <div id="recommendation" class="recommendation"></div>
+
+      <p class="disclaimer">
+        ⚠ This tool is for research / screening purposes only and does not replace
+        clinical diagnosis. Always confirm with a qualified healthcare professional.
+      </p>
+    </section>
+
+    <!-- Error banner -->
+    <div id="errorBanner" class="error-banner hidden"></div>
+
+    <!-- Loading spinner -->
+    <div id="spinner" class="spinner hidden">
+      <div class="spinner-ring"></div>
+      <p>Analysing image…</p>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────────── -->
+  <footer>
+    <p>MobileNetV2 · TensorFlow · CP-AnemiC Dataset · Binary Classifier · 72.9% Test Accuracy</p>
+  </footer>
+
+  <!-- ── JavaScript ─────────────────────────────────────────────── -->
+  <script>
+    const fileInput   = document.getElementById('fileInput');
+    const dropzone    = document.getElementById('dropzone');
+    const previewWrap = document.getElementById('previewWrap');
+    const previewImg  = document.getElementById('previewImg');
+    const clearBtn    = document.getElementById('clearBtn');
+    const analyseBtn  = document.getElementById('analyseBtn');
+    const resultsCard = document.getElementById('resultsCard');
+    const errorBanner = document.getElementById('errorBanner');
+    const spinner     = document.getElementById('spinner');
+
+    // ── File selection helpers ──────────────────────────────────
+    function setFile(file) {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewWrap.classList.remove('hidden');
+      dropzone.classList.add('has-image');
+      analyseBtn.disabled = false;
+      resultsCard.classList.add('hidden');
+      errorBanner.classList.add('hidden');
+    }
+
+    function clearFile() {
+      fileInput.value = '';
+      previewImg.src  = '';
+      previewWrap.classList.add('hidden');
+      dropzone.classList.remove('has-image');
+      analyseBtn.disabled = true;
+      resultsCard.classList.add('hidden');
+      errorBanner.classList.add('hidden');
+    }
+
+    fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+    clearBtn.addEventListener('click',   e  => { e.preventDefault(); clearFile(); });
+
+    // Drag-and-drop
+    dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) { fileInput.files = e.dataTransfer.files; setFile(file); }
+    });
+
+    // ── Analyse ────────────────────────────────────────────────
+    analyseBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      spinner.classList.remove('hidden');
+      analyseBtn.disabled = true;
+      resultsCard.classList.add('hidden');
+      errorBanner.classList.add('hidden');
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const response = await fetch('/predict', { method: 'POST', body: formData });
+        const data     = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || 'Unknown server error.');
+        }
+
+        showResults(data);
+      } catch (err) {
+        errorBanner.textContent = 'Error: ' + err.message;
+        errorBanner.classList.remove('hidden');
+      } finally {
+        spinner.classList.add('hidden');
+        analyseBtn.disabled = false;
+      }
+    });
+
+    // ── Render results ─────────────────────────────────────────
+    function showResults(data) {
+      const badge   = document.getElementById('diagnosisBadge');
+      const rec     = document.getElementById('recommendation');
+      const isAnemic = data.predicted_class === 'Anemic';
+
+      badge.textContent  = `${data.predicted_class}  —  ${data.confidence}% confidence`;
+      badge.className    = 'diagnosis-badge ' + (isAnemic ? 'badge-anemic' : 'badge-healthy');
+      rec.textContent    = data.recommendation;
+
+      const pNA = data.probabilities['Non-Anemic'] ?? 0;
+      const pA  = data.probabilities['Anemic']     ?? 0;
+
+      document.getElementById('barNonAnemic').style.width = pNA + '%';
+      document.getElementById('barAnemic').style.width    = pA  + '%';
+      document.getElementById('pctNonAnemic').textContent = pNA + '%';
+      document.getElementById('pctAnemic').textContent    = pA  + '%';
+
+      resultsCard.classList.remove('hidden');
+      resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+
+</body>
+</html>
