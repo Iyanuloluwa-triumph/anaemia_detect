@@ -2,6 +2,7 @@ services:
   - type: web
     name: anaemia-classifier
     env: python
+    pythonVersion: "3.11.10"
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
